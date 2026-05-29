@@ -1,0 +1,676 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>工作性价比测算器</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "PingFang SC", "Microsoft YaHei", sans-serif;
+    background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+    min-height: 100vh;
+    color: #fff;
+    padding: 20px 16px 40px;
+  }
+  .container { max-width: 480px; margin: 0 auto; }
+
+  /* Header */
+  .header {
+    text-align: center;
+    padding: 24px 0 20px;
+  }
+  .header h1 {
+    font-size: 28px;
+    font-weight: 800;
+    background: linear-gradient(135deg, #f7971e, #ffd200);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .header p {
+    font-size: 13px;
+    color: rgba(255,255,255,0.5);
+    margin-top: 6px;
+  }
+
+  /* Input Card */
+  .card {
+    background: rgba(255,255,255,0.07);
+    backdrop-filter: blur(16px);
+    border-radius: 16px;
+    padding: 20px 18px;
+    margin-bottom: 14px;
+    border: 1px solid rgba(255,255,255,0.08);
+  }
+  .card-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: rgba(255,255,255,0.4);
+    margin-bottom: 16px;
+    letter-spacing: 1px;
+  }
+
+  /* Form Fields */
+  .field {
+    margin-bottom: 16px;
+  }
+  .field:last-child { margin-bottom: 0; }
+  .field-label {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 6px;
+  }
+  .field-label .name {
+    font-size: 15px;
+    font-weight: 500;
+  }
+  .field-label .hint {
+    font-size: 11px;
+    color: rgba(255,255,255,0.35);
+  }
+  .field-label .value-display {
+    font-size: 15px;
+    font-weight: 700;
+    color: #ffd200;
+  }
+
+  /* Number input */
+  .number-input-wrap {
+    position: relative;
+  }
+  .number-input-wrap input[type="number"] {
+    width: 100%;
+    padding: 12px 14px;
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 10px;
+    color: #fff;
+    font-size: 16px;
+    outline: none;
+    transition: border 0.2s;
+    -moz-appearance: textfield;
+  }
+  .number-input-wrap input[type="number"]:focus {
+    border-color: #ffd200;
+  }
+  .number-input-wrap input[type="number"]::-webkit-outer-spin-button,
+  .number-input-wrap input[type="number"]::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+  .number-input-wrap .suffix {
+    position: absolute;
+    right: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: rgba(255,255,255,0.3);
+    font-size: 13px;
+  }
+  .number-input-wrap .prefix {
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: rgba(255,255,255,0.3);
+    font-size: 13px;
+  }
+  .number-input-wrap input[type="number"].has-prefix { padding-left: 32px; }
+  .number-input-wrap input[type="number"].has-suffix { padding-right: 32px; }
+
+  /* Select dropdown */
+  .select-wrap { position: relative; }
+  .select-wrap select {
+    width: 100%;
+    padding: 12px 14px;
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 10px;
+    color: #fff;
+    font-size: 15px;
+    outline: none;
+    appearance: none;
+    cursor: pointer;
+    transition: border 0.2s;
+  }
+  .select-wrap select:focus { border-color: #ffd200; }
+  .select-wrap select option {
+    background: #302b63;
+    color: #fff;
+  }
+  .select-wrap::after {
+    content: "▾";
+    position: absolute;
+    right: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: rgba(255,255,255,0.3);
+    pointer-events: none;
+  }
+
+  /* Result */
+  .result-card {
+    background: linear-gradient(135deg, rgba(247,151,30,0.15), rgba(255,210,0,0.08));
+    border: 1px solid rgba(247,151,30,0.25);
+    border-radius: 20px;
+    padding: 24px;
+    text-align: center;
+    margin-bottom: 14px;
+  }
+  .result-score {
+    font-size: 56px;
+    font-weight: 900;
+    line-height: 1;
+    margin-bottom: 4px;
+  }
+  .result-score.good { color: #ffd200; }
+  .result-score.great { color: #00e676; }
+  .result-score.awesome { background: linear-gradient(135deg, #f7971e, #ffd200, #00e676); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+  .result-score.bad { color: #ff5252; }
+  .result-label {
+    font-size: 20px;
+    font-weight: 700;
+    margin-bottom: 8px;
+  }
+  .result-label.bad { color: #ff5252; }
+  .result-label.good { color: #ffd200; }
+  .result-label.great { color: #00e676; }
+  .result-label.awesome { color: #00e676; }
+  .result-desc {
+    font-size: 13px;
+    color: rgba(255,255,255,0.5);
+    line-height: 1.6;
+  }
+  .result-detail {
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+    margin-top: 16px;
+  }
+  .result-detail-item {
+    flex: 1;
+    background: rgba(255,255,255,0.05);
+    border-radius: 10px;
+    padding: 10px 6px;
+  }
+  .result-detail-item .num {
+    font-size: 18px;
+    font-weight: 700;
+    color: #ffd200;
+  }
+  .result-detail-item .lbl {
+    font-size: 11px;
+    color: rgba(255,255,255,0.35);
+    margin-top: 2px;
+  }
+  /* Scale bar */
+  .scale-bar-wrap {
+    margin-top: 16px;
+    padding: 0 4px;
+  }
+  .scale-bar {
+    position: relative;
+    height: 6px;
+    background: rgba(255,255,255,0.1);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+  .scale-bar-fill {
+    height: 100%;
+    border-radius: 3px;
+    background: linear-gradient(90deg, #ff5252, #ffd200, #00e676);
+    transition: width 0.4s ease;
+  }
+  .scale-labels {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 4px;
+    font-size: 10px;
+    color: rgba(255,255,255,0.3);
+  }
+  .scale-marker {
+    position: absolute;
+    top: -3px;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: #fff;
+    border: 2px solid #302b63;
+    transform: translateX(-50%);
+    transition: left 0.4s ease;
+    z-index: 2;
+  }
+  .detail-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 6px 0;
+    font-size: 13px;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+  }
+  .detail-row:last-child { border-bottom: none; }
+  .detail-row .label { color: rgba(255,255,255,0.5); }
+  .detail-row .value { color: rgba(255,255,255,0.85); font-weight: 500; }
+
+  /* Share button */
+  .share-btn {
+    display: block;
+    width: 100%;
+    padding: 16px;
+    background: linear-gradient(135deg, #f7971e, #ffd200);
+    border: none;
+    border-radius: 12px;
+    color: #1a1a2e;
+    font-size: 17px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: transform 0.15s, opacity 0.15s;
+  }
+  .share-btn:active { transform: scale(0.97); opacity: 0.85; }
+
+  /* Footer */
+  .footer {
+    text-align: center;
+    padding: 20px 0 10px;
+    font-size: 11px;
+    color: rgba(255,255,255,0.2);
+  }
+
+  /* Toast */
+  .toast {
+    position: fixed;
+    bottom: 30px;
+    left: 50%;
+    transform: translateX(-50%) translateY(80px);
+    background: rgba(0,0,0,0.8);
+    backdrop-filter: blur(8px);
+    padding: 12px 24px;
+    border-radius: 10px;
+    font-size: 14px;
+    color: #fff;
+    opacity: 0;
+    transition: all 0.3s;
+    pointer-events: none;
+    white-space: nowrap;
+  }
+  .toast.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+
+  /* Responsive */
+  @media (max-width: 400px) {
+    .header h1 { font-size: 22px; }
+    .result-score { font-size: 44px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+
+  <div class="header">
+    <h1>💰 工作性价比测算</h1>
+    <p>算算你这班上的值不值</p>
+  </div>
+
+  <!-- Result -->
+  <div class="result-card" id="resultCard">
+    <div class="result-score" id="resultScore">-</div>
+    <div class="result-label" id="resultLabel">填写信息开始测算</div>
+    <div class="result-desc" id="resultDesc">
+      低于 0.8 很惨 · 高于 1.5 很爽 · 高于 2.0 爽到爆
+    </div>
+    <div class="scale-bar-wrap">
+      <div class="scale-bar">
+        <div class="scale-bar-fill" id="scaleFill" style="width:0%"></div>
+        <div class="scale-marker" id="scaleMarker" style="left:0%"></div>
+      </div>
+      <div class="scale-labels">
+        <span>0</span>
+        <span>0.8 很惨</span>
+        <span>1.5 很爽</span>
+        <span>2.0 爆炸</span>
+        <span>3.0+</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Manual Inputs -->
+  <div class="card">
+    <div class="card-title">✏️ 填写你的数据</div>
+
+    <div class="field">
+      <div class="field-label">
+        <span class="name">平均日薪酬</span>
+      </div>
+      <div class="number-input-wrap">
+        <span class="prefix">¥</span>
+        <input type="number" id="salary" class="has-prefix" placeholder="0" min="0" step="1">
+        <span class="suffix">元/天</span>
+      </div>
+    </div>
+
+    <div class="field">
+      <div class="field-label">
+        <span class="name">工作时长</span>
+        <span class="hint">下班时间 − 上班时间</span>
+      </div>
+      <div class="number-input-wrap">
+        <input type="number" id="workHours" placeholder="0" min="0" step="0.5">
+        <span class="suffix">小时</span>
+      </div>
+    </div>
+
+    <div class="field">
+      <div class="field-label">
+        <span class="name">通勤时长</span>
+        <span class="hint">往返合计</span>
+      </div>
+      <div class="number-input-wrap">
+        <input type="number" id="commuteHours" placeholder="0" min="0" step="0.5">
+        <span class="suffix">小时</span>
+      </div>
+    </div>
+
+    <div class="field">
+      <div class="field-label">
+        <span class="name">摸鱼时长</span>
+        <span class="hint">不干活 + 吃饭 + 午休</span>
+      </div>
+      <div class="number-input-wrap">
+        <input type="number" id="slackHours" placeholder="0" min="0" step="0.5">
+        <span class="suffix">小时</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Coefficient Dropdowns -->
+  <div class="card">
+    <div class="card-title">⚙️ 选择你的系数</div>
+
+    <div class="field">
+      <div class="field-label">
+        <span class="name">学历系数</span>
+      </div>
+      <div class="select-wrap">
+        <select id="education">
+          <option value="0.8">专科及以下 (×0.8)</option>
+          <option value="1.0" selected>普通本科 (×1.0)</option>
+          <option value="1.2">高级本科 (×1.2)</option>
+          <option value="1.4">普通硕士 (×1.4)</option>
+          <option value="1.6">高级硕士 (×1.6)</option>
+          <option value="1.8">普通博士 (×1.8)</option>
+          <option value="2.0">高级博士 (×2.0)</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="field">
+      <div class="field-label">
+        <span class="name">工作环境系数</span>
+      </div>
+      <div class="select-wrap">
+        <select id="environment">
+          <option value="0.8">偏僻地区 (×0.8)</option>
+          <option value="0.9">工厂/户外 (×0.9)</option>
+          <option value="1.0" selected>普通 (×1.0)</option>
+          <option value="1.1">体制内 (×1.1)</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="field">
+      <div class="field-label">
+        <span class="name">异性环境系数</span>
+      </div>
+      <div class="select-wrap">
+        <select id="genderRatio">
+          <option value="0.9">没有异性 (×0.9)</option>
+          <option value="1.0" selected>不多不少 (×1.0)</option>
+          <option value="1.1">很多异性 (×1.1)</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="field">
+      <div class="field-label">
+        <span class="name">同事环境系数</span>
+      </div>
+      <div class="select-wrap">
+        <select id="colleagues">
+          <option value="0.95">SB 很多 (×0.95)</option>
+          <option value="1.0" selected>普通很多 (×1.0)</option>
+          <option value="1.05">优秀很多 (×1.05)</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="field">
+      <div class="field-label">
+        <span class="name">职业资格系数</span>
+      </div>
+      <div class="select-wrap">
+        <select id="qualification">
+          <option value="1.0">无要求 / 二级 (×1.0)</option>
+          <option value="1.05">建造/造价/监理 (×1.05)</option>
+          <option value="1.1">建筑/岩土/结构 (×1.1)</option>
+          <option value="1.15">主任医师 / 教授 (×1.15)</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="field">
+      <div class="field-label">
+        <span class="name">是否 8:30 前上班</span>
+      </div>
+      <div class="select-wrap">
+        <select id="before830">
+          <option value="0.95">是 (×0.95)</option>
+          <option value="1.0" selected>否 (×1.0)</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <!-- Breakdown -->
+  <div class="card">
+    <div class="card-title">📊 计算明细</div>
+    <div class="detail-row">
+      <span class="label">综合环境系数</span>
+      <span class="value" id="detailEnv">1.0000</span>
+    </div>
+    <div class="detail-row">
+      <span class="label">有效工时</span>
+      <span class="value" id="detailEffort">0.00</span>
+    </div>
+  </div>
+
+  <button class="share-btn" id="shareBtn">📤 分享到微信群</button>
+
+  <div class="footer">
+    数据仅本地计算，不会上传 · 仅供娱乐参考
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const $ = id => document.getElementById(id);
+
+const INPUT_IDS = [
+  'salary', 'workHours', 'commuteHours', 'slackHours',
+  'education', 'environment', 'genderRatio', 'colleagues',
+  'qualification', 'before830'
+];
+
+// Save/Load state
+const STORAGE_KEY = 'job_value_calc';
+function saveState() {
+  try {
+    const state = {};
+    INPUT_IDS.forEach(id => {
+      const el = document.getElementById(id);
+      state[id] = el.value;
+    });
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  } catch(e) {}
+}
+function loadState() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return;
+    const state = JSON.parse(raw);
+    INPUT_IDS.forEach(id => {
+      const el = document.getElementById(id);
+      if (state[id] !== undefined) el.value = state[id];
+    });
+  } catch(e) {}
+}
+
+function calc() {
+  const D5 = parseFloat($('salary').value) || 0;
+  const D6 = parseFloat($('workHours').value) || 0;
+  const D7 = parseFloat($('commuteHours').value) || 0;
+  const D8 = parseFloat($('slackHours').value) || 0;
+  const D9 = parseFloat($('education').value) || 1;
+  const D10 = parseFloat($('environment').value) || 1;
+  const D11 = parseFloat($('genderRatio').value) || 1;
+  const D12 = parseFloat($('colleagues').value) || 1;
+  const D13 = parseFloat($('qualification').value) || 1;
+  const D14 = parseFloat($('before830').value) || 1;
+
+  const D15 = 1 * D10 * D11 * D12;
+
+  // 有效工时 = 工作时长 + 通勤时长 - 0.5 * 摸鱼时长
+  const effectiveHours = D6 + D7 - 0.5 * D8;
+
+  // 边界保护：有效工时不能为负，最低0.5小时
+  const safeHours = Math.max(effectiveHours, 0.5);
+
+  let score = 0;
+  if (D5 > 0) {
+    score = ((D5 * D15) / (35 * safeHours * D9 * D13)) * D14;
+  }
+
+  // Update detail
+  $('detailEnv').textContent = D15.toFixed(4);
+  $('detailEffort').textContent = effectiveHours.toFixed(1) + ' 小时';
+
+  // Display result
+  const scoreEl = $('resultScore');
+  const labelEl = $('resultLabel');
+  const descEl = $('resultDesc');
+  const scaleFill = $('scaleFill');
+  const scaleMarker = $('scaleMarker');
+
+  if (D5 <= 0 || D6 <= 0) {
+    scoreEl.textContent = '-';
+    scoreEl.className = 'result-score';
+    labelEl.textContent = '填写信息开始测算';
+    labelEl.className = 'result-label';
+    descEl.textContent = '低于 0.8 很惨 · 高于 1.5 很爽 · 高于 2.0 爽到爆';
+    scaleFill.style.width = '0%';
+    scaleMarker.style.left = '0%';
+    return;
+  }
+
+  scoreEl.textContent = score.toFixed(2);
+
+  let label, cls, desc;
+  if (score < 0.8) {
+    cls = 'bad';
+    label = '💀 很惨';
+    desc = '这班上得真亏…考虑跑路吧';
+  } else if (score < 1.5) {
+    cls = 'good';
+    label = '😐 一般';
+    desc = '马马虎虎，比上不足比下有余';
+  } else if (score < 2.0) {
+    cls = 'great';
+    label = '😎 很爽';
+    desc = '这班挺值，继续保持！';
+  } else {
+    cls = 'awesome';
+    label = '🚀 爽到爆炸';
+    desc = '神仙工作！好好珍惜千万别冲动离职';
+  }
+
+  scoreEl.className = 'result-score ' + cls;
+  labelEl.textContent = label;
+  labelEl.className = 'result-label ' + cls;
+  descEl.textContent = desc;
+
+  // Scale bar (cap at 3.0 for display)
+  const pct = Math.min((score / 3.0) * 100, 100);
+  scaleFill.style.width = pct + '%';
+  scaleMarker.style.left = pct + '%';
+}
+
+// Share function
+function share() {
+  const score = $('resultScore').textContent;
+  const label = $('resultLabel').textContent;
+  const salary = $('salary').value || '?';
+  const hours = $('workHours').value || '?';
+  const env = $('#environment option:selected').text;
+  const edu = $('#education option:selected').text;
+
+  const text = `💰 我的工作性价比：${score} | ${label}
+📅 日薪 ¥${salary} | 工作 ${hours}h
+🏢 ${env} | ${edu}
+👉 戳这里算算你的👇`;
+
+  // Check if WeChat browser
+  const ua = navigator.userAgent.toLowerCase();
+  const isWechat = ua.indexOf('micromessenger') !== -1;
+
+  if (isWechat) {
+    // WeChat built-in browser - tell user to use menu
+    showToast('点击右上角「···」分享给好友或群聊');
+    return;
+  }
+
+  // Try Web Share API (mobile)
+  if (navigator.share) {
+    navigator.share({
+      title: '工作性价比测算',
+      text: text,
+      url: window.location.href,
+    }).catch(() => {});
+  } else {
+    // Fallback: copy to clipboard
+    const full = `${text}\n${window.location.href}`;
+    navigator.clipboard.writeText(full).then(() => {
+      showToast('✅ 已复制结果，快去分享吧！');
+    }).catch(() => {
+      showToast('请截图分享给好友');
+    });
+  }
+}
+
+let toastTimer;
+
+function showToast(msg) {
+  const el = $('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove('show'), 2500);
+}
+
+// Bind events
+INPUT_IDS.forEach(id => {
+  const el = $(id);
+  el.addEventListener('input', () => { calc(); saveState(); });
+  el.addEventListener('change', () => { calc(); saveState(); });
+});
+
+$('shareBtn').addEventListener('click', share);
+
+// Restore saved state & calc
+loadState();
+calc();
+</script>
+</body>
+</html>
